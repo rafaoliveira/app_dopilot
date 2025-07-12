@@ -1,0 +1,20 @@
+# flutter pub run flutter_launcher_icons
+flutter_launcher_icons:
+  # Ícone padrão para Android e outras plataformas
+  image_path: "assets/launcher_icons/logo_1024.png"
+
+  android: "launcher_icon"
+  min_sdk_android: 21
+  # Ícone adaptativo para Android (opcional)
+  # adaptive_icon_background: "assets/launcher_icons/background.png"
+  # adaptive_icon_foreground: "assets/launcher_icons/foreground.png"
+
+  ios: true
+  # Ícone específico para iOS (formato quadrado)
+  image_path_ios: "assets/launcher_icons/logo_ios_1024.png"
+  remove_alpha_ios: true
+
+  # image_path_ios_dark_transparent: "assets/icon/icon_dark.png"
+  # image_path_ios_tinted_grayscale: "assets/icon/icon_tinted.png"
+  # desaturate_tinted_to_grayscale_ios: true
+  # background_color_ios: "#ffffff"
