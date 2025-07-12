@@ -1,3 +1,4 @@
+import 'package:app_dopilot/screens/auth/login_screen.dart';
 import 'package:app_dopilot/screens/splash/splash_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -19,7 +20,8 @@ class MyApp extends StatelessWidget {
       ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const SplashScreen()
+        '/': (context) => const SplashScreen(),
+        '/login': (context) => const LoginScreen(),
       },
     );
   }
