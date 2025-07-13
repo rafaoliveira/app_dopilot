@@ -254,6 +254,8 @@ class _LoginScreenState extends State<LoginScreen> {
       isLoading = true;
     });
 
+    Navigator.of(context).pushReplacementNamed('/home');
+
   }
 
   void _handleForgotPassword() async {
