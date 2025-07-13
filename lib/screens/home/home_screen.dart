@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ? null
           : AppFloatingActionButton(
               onPressed: () {
-                // Action for the floating action button
+                Navigator.of(context).pushNamed('/new-task');
               },
             ),
     );

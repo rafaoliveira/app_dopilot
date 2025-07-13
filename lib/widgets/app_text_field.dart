@@ -17,6 +17,7 @@ class AppTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final bool enabled;
+  final int? maxLines;
 
   const AppTextField({
     super.key,
@@ -31,6 +32,7 @@ class AppTextField extends StatelessWidget {
     this.validator,
     this.onChanged,
     this.enabled = true,
+    this.maxLines = 1,
   });
 
   @override
@@ -42,6 +44,7 @@ class AppTextField extends StatelessWidget {
       enabled: enabled,
       validator: validator,
       onChanged: onChanged,
+      maxLines: maxLines,
       style: TextStyle(
         fontSize: 16,
         color: enabled ? Colors.black87 : Colors.grey[600],
@@ -49,42 +52,14 @@ class AppTextField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        labelStyle: TextStyle(
-          color: Colors.grey[600],
-          fontSize: 16,
-        ),
-        hintStyle: TextStyle(
-          color: Colors.grey[400],
-          fontSize: 16,
-        ),
         suffixIcon: _buildSuffixIcon(),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: Colors.grey[300]!),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.primaryPurple, width: 2),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 1),
-        ),
-        focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 2),
-        ),
-        disabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[200]!),
-        ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        filled: !enabled,
-        fillColor: enabled ? null : Colors.grey[50],
+        filled: enabled,
+        fillColor: AppColors.background,
       ),
     );
   }
