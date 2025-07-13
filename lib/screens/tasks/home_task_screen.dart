@@ -78,14 +78,6 @@ class _HomeTaskScreenState extends State<HomeTaskScreen> {
     });
   }
 
-  void _showAddTaskModal() {
-    Navigator.pushNamed(context, '/new-task').then((result) {
-      if (result != null && result is TaskData) {
-        _addTask(result.title, result.time);
-      }
-    });
-  }
-
   int get _completedTasks => _tasks.where((task) => task.isCompleted).length;
 
   int get _pendingTasks => _tasks.where((task) => !task.isCompleted).length;
@@ -115,7 +107,7 @@ class _HomeTaskScreenState extends State<HomeTaskScreen> {
             tasks: _tasks,
             onTaskToggle: _toggleTask,
             onSeeAll: () {
-
+              Navigator.of(context).pushNamed('/all-tasks');
             },
           ),
 

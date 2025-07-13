@@ -1,4 +1,4 @@
-import 'package:app_dopilot/screens/tasks/widgets/new_task_app_bar.dart';
+import 'package:app_dopilot/screens/tasks/widgets/task_app_bar.dart';
 import 'package:app_dopilot/widgets/app_button.dart';
 import 'package:app_dopilot/widgets/app_text.dart';
 import 'package:app_dopilot/widgets/app_text_field.dart';
@@ -63,7 +63,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.backgroundGray,
-      appBar: NewTaskAppBar(title: 'Nova Tarefa'),
+      appBar: TaskAppBar(title: 'Nova Tarefa'),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
