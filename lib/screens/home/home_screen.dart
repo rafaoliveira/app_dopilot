@@ -1,5 +1,6 @@
 import 'package:app_dopilot/screens/home/widgets/home_app_bar.dart';
 import 'package:app_dopilot/screens/home/widgets/home_bottom_navigation_bar.dart';
+import 'package:app_dopilot/screens/notifications/notifications_screen.dart';
 import 'package:app_dopilot/screens/tasks/home_task_screen.dart';
 import 'package:app_dopilot/widgets/app_floating_action_button.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class _HomeScreenState extends State<HomeScreen> {
   final List<Widget> _screens = [
     HomeTaskScreen(),
     Container(),
-    Container(),
+    NotificationsScreen(),
   ];
 
   @override
