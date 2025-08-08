@@ -138,7 +138,7 @@ class AuthService {
           );
 
           if (!tokenSaved) {
-            print('⚠️ Aviso: Falha ao salvar tokens após login com Google');
+            print('Falha ao salvar tokens após login com Google');
           }
         }
 
@@ -225,13 +225,13 @@ class AuthService {
       final allSaved = results.every((result) => result);
 
       if (allSaved) {
-        print('✅ Tokens salvos com sucesso para usuário: $userId');
+        print('Tokens salvos com sucesso para usuário: $userId');
         return true;
       } else {
         throw Exception('Falha ao salvar um ou mais tokens');
       }
     } catch (e) {
-      print('❌ Erro ao salvar tokens: $e');
+      print('Erro ao salvar tokens: $e');
       return false;
     }
   }

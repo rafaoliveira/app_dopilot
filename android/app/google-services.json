@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "68692557861",
+    "project_id": "dopilot-e928f",
+    "storage_bucket": "dopilot-e928f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:68692557861:android:a2423de5f4637fb1753fcc",
+        "android_client_info": {
+          "package_name": "br.com.impacta.dopilot"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "68692557861-c6l01nsrlr1a0e2tuhgacrv4657hoia8.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.impacta.dopilot",
+            "certificate_hash": "2942aeced4de0a5527e9f9e63c8a0216a59f132b"
+          }
+        },
+        {
+          "client_id": "68692557861-eshkrmua46sifri4i9nkqqq1lkae5q7b.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.impacta.dopilot",
+            "certificate_hash": "80c0dc8059a973ec4bfb2fa489ab902a5c017851"
+          }
+        },
+        {
+          "client_id": "68692557861-4d2b2q9aj69n6bvi3rv9hckn93ber55r.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBXS4fiSlMrRQWRQisCdXMmiQicTeoM184"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "68692557861-4d2b2q9aj69n6bvi3rv9hckn93ber55r.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "68692557861-cmgf654l5o6t7tv57g894ifesiou7f3p.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "br.com.impacta.dopilot"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

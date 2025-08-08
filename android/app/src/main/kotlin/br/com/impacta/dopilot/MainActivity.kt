@@ -1,4 +1,4 @@
-package br.com.impacta.dopilot.app_dopilot
+package br.com.impacta.dopilot
 
 import io.flutter.embedding.android.FlutterActivity
 
