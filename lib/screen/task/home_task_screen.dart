@@ -1,11 +1,11 @@
-import 'package:app_dopilot/bloc/task/daily_tasks_cubit.dart';
-import 'package:app_dopilot/bloc/task/daily_tasks_state.dart';
+import 'package:app_dopilot/bloc/task/daily_task_cubit.dart';
+import 'package:app_dopilot/bloc/task/daily_task_state.dart';
 import 'package:app_dopilot/screen/task/widget/stats_cards.dart';
 import 'package:app_dopilot/screen/task/widget/tasks_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/model/task_data.dart';
+import '../../data/model/task.dart';
 
 class HomeTaskScreen extends StatefulWidget {
   const HomeTaskScreen({super.key});
@@ -20,12 +20,12 @@ class _HomeTaskScreenState extends State<HomeTaskScreen> {
   void initState() {
     super.initState();
     // Carregar tarefas do dia ao inicializar
-    context.read<DailyTasksCubit>().loadDailyTasks();
+    context.read<DailyTaskCubit>().loadDailyTasks();
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<DailyTasksCubit, DailyTasksState>(
+    return BlocConsumer<DailyTaskCubit, DailyTasksState>(
       listener: (context, state) {
         if (state is DailyTasksUpdated) {
           //_showSnackBarWithUndo(state.updatedTask, state.previousTask);
@@ -138,7 +138,7 @@ class _HomeTaskScreenState extends State<HomeTaskScreen> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      context.read<DailyTasksCubit>().loadDailyTasks();
+                      context.read<DailyTaskCubit>().loadDailyTasks();
                     },
                     child: const Text('Tentar Novamente'),
                   ),
@@ -157,7 +157,7 @@ class _HomeTaskScreenState extends State<HomeTaskScreen> {
         ? state.tasks
         : state is DailyTasksUpdated
         ? state.tasks
-        : <TaskData>[];
+        : <Task>[];
 
     final isUpdating = state is DailyTasksUpdating;
 
@@ -168,7 +168,7 @@ class _HomeTaskScreenState extends State<HomeTaskScreen> {
           : (index) {
         final task = tasks[index];
         if (task.id != null) {
-          context.read<DailyTasksCubit>().toggleTaskCompletion(task.id!);
+          context.read<DailyTaskCubit>().toggleTaskCompletion(task.id!);
         }
       },
       onSeeAll: () {

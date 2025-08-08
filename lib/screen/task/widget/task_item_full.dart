@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../data/model/task_data.dart';
+import '../../../data/model/task.dart';
 import '../../../util/colors.dart';
 import '../../../util/constants.dart';
 
 /// Widget para exibir uma tarefa completa na lista de todas as tarefas
 class TaskItemFull extends StatelessWidget {
-  final TaskData task;
+  final Task task;
   final bool isUpdating;
   final VoidCallback? onToggle;
   final VoidCallback? onEdit;
@@ -129,7 +129,7 @@ class TaskItemFull extends StatelessWidget {
         Icon(Icons.schedule, size: 16, color: Colors.grey.shade500),
         const SizedBox(width: 4),
         Text(
-          task.time,
+          task.time.toString(),
           style: TextStyle(
             fontSize: 13,
             color: Colors.grey.shade500,
@@ -146,7 +146,7 @@ class TaskItemFull extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
-            task.isCompleted ? 'Concluída' : 'Pendente',
+            task.status!.displayName,
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,

@@ -1,6 +1,11 @@
+import 'package:app_dopilot/data/dto/task_request_dto.dart';
+import 'package:app_dopilot/data/enum/task_category.dart';
+import 'package:app_dopilot/data/enum/task_priority.dart';
+import 'package:flutter/material.dart';
+
 import '../data/dto/task_response_dto.dart';
-import '../data/model/task_data.dart';
-import '../data/model/task_status.dart';
+import '../data/enum/task_status.dart';
+import '../data/model/task.dart';
 import '../repository/task_repository.dart';
 
 /// Service responsável pela lógica de negócio das tarefas
@@ -8,9 +13,7 @@ import '../repository/task_repository.dart';
 /// Atua como uma camada intermediária entre o Cubit e o Repository,
 /// contendo toda a lógica de transformação de dados e regras de negócio
 class TaskService {
-
   late final TaskRepository _taskRepository;
-
 
   TaskService() {
     _taskRepository = TaskRepository();
@@ -19,15 +22,30 @@ class TaskService {
   /// Buscar tarefas do dia atual formatadas para exibição na home
   ///
   /// Retorna uma lista de TaskData já formatada e ordenada
-  Future<List<TaskData>> getDailyTasksForHome(DateTime date) async {
+  Future<List<Task>> getDailyTasks() async {
+    final DateTime startOfDay = DateTime.now();
+
+    final DateTime endOfDay = DateTime(
+      startOfDay.year,
+      startOfDay.month,
+      startOfDay.day,
+      23,
+      59,
+      59,
+    );
+
     try {
       // Buscar dados do repository
-      final tasks = await _taskRepository.getDailyTasksForHome(date);
+      final tasks = await _taskRepository.getUserTasks(
+        startDate: startOfDay,
+        endDate: endOfDay,
+        size: 50,
+        sortBy: 'dueDate',
+        direction: 'asc',
+      );
 
       // Converter para TaskData e ordenar
-      final taskDataList = tasks
-          .map((dto) => _convertToTaskData(dto))
-          .toList();
+      final taskDataList = tasks.map((dto) => _convertToTaskData(dto)).toList();
 
       // Ordenar por horário
       taskDataList.sort((a, b) => a.time.compareTo(b.time));
@@ -38,12 +56,82 @@ class TaskService {
     }
   }
 
+  /// Buscar tarefas do dia atual formatadas para exibição na home
+  ///
+  /// Retorna uma lista de TaskData já formatada e ordenada
+  Future<List<Task>> getTasksByFilter({
+    int? page,
+    int? size,
+    String? sortBy,
+    String? direction,
+    String? title,
+    String? status,
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    try {
+      // Buscar dados do repository
+      final tasks = await _taskRepository.getUserTasks(
+        page: page,
+        size: size,
+        sortBy: sortBy,
+        direction: direction,
+        title: title,
+        status: status,
+        startDate: startDate,
+        endDate: endDate,
+      );
+
+      // Converter para TaskData e ordenar
+      final taskDataList = tasks.map((dto) => _convertToTaskData(dto)).toList();
+
+      // Ordenar por horário
+      taskDataList.sort((a, b) => a.time.compareTo(b.time));
+
+      return taskDataList;
+    } catch (e) {
+      throw Exception('Erro ao carregar tarefas do dia: $e');
+    }
+  }
+
+  Future<bool> createOrUpdateTask(Task task) async {
+    try {
+      TaskResponseDto? responseDto;
+
+      TaskRequestDto _taskDto = _convertTaskToDto(task);
+
+      if (task.id == null) {
+        responseDto = await _taskRepository.createTask(_taskDto);
+      } else {
+        responseDto = await _taskRepository.updateTask(task.id!, _taskDto);
+      }
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Deletar tarefa
+  ///
+  /// Retorna true se deletada com sucesso, false caso contrário
+  Future<bool> deleteTask(int taskId) async {
+    try {
+      return await _taskRepository.deleteTask(taskId);
+    } catch (e) {
+      return false;
+    }
+  }
+
   /// Alternar status de conclusão de uma tarefa
   ///
   /// Retorna TaskData atualizada ou null em caso de erro
-  Future<TaskData?> toggleTaskCompletion(int taskId, bool completed) async {
+  Future<Task?> toggleTaskCompletion(int taskId, bool completed) async {
     try {
-      final updatedDto = await _taskRepository.toggleTaskCompletion(taskId, completed);
+      final updatedDto = await _taskRepository.toggleTaskCompletion(
+        taskId,
+        completed,
+      );
 
       if (updatedDto != null) {
         return _convertToTaskData(updatedDto);
@@ -55,72 +143,45 @@ class TaskService {
     }
   }
 
-  /// Buscar tarefas do dia com todos os status
-  Future<List<TaskData>> getDailyTasks(DateTime date) async {
-    try {
-      final tasks = await _taskRepository.getDailyTasks(date);
-
-      final taskDataList = tasks
-          .map((dto) => _convertToTaskData(dto))
-          .toList();
-
-      // Ordenar por horário
-      taskDataList.sort((a, b) => a.time.compareTo(b.time));
-
-      return taskDataList;
-    } catch (e) {
-      throw Exception('Erro ao carregar tarefas: $e');
-    }
-  }
-
-  /// Obter estatísticas das tarefas
-  Future<Map<String, int>> getTaskStats() async {
-    try {
-      final stats = await _taskRepository.getTaskStats();
-
-      if (stats != null) {
-        return {
-          'total': stats['total'] ?? 0,
-          'completed': stats['completed'] ?? 0,
-          'pending': stats['pending'] ?? 0,
-          'active': stats['active'] ?? 0,
-        };
-      }
-
-      return {'total': 0, 'completed': 0, 'pending': 0, 'active': 0};
-    } catch (e) {
-      throw Exception('Erro ao carregar estatísticas: $e');
-    }
-  }
-
   /// Calcular estatísticas de uma lista de tarefas
-  Map<String, int> calculateStatsFromTasks(List<TaskData> tasks) {
+  Map<String, int> calculateStatsFromTasks(List<Task> tasks) {
     final completed = tasks.where((t) => t.isCompleted).length;
     final pending = tasks.length - completed;
 
-    return {
-      'total': tasks.length,
-      'completed': completed,
-      'pending': pending,
-    };
+    return {'total': tasks.length, 'completed': completed, 'pending': pending};
   }
 
-  /// Converter TaskResponseDto para TaskData
-  TaskData _convertToTaskData(TaskResponseDto dto) {
-    return TaskData(
+  /// Converter TaskResponseDto para Task
+  Task _convertToTaskData(TaskResponseDto dto) {
+    return Task(
       id: dto.id,
       title: dto.title,
       description: dto.description,
-      time: _formatTime(dto.dueDate),
+      status: dto.status,
+      time: TimeOfDay(hour: dto.dueDate.hour, minute: dto.dueDate.minute),
       date: dto.dueDate,
       isCompleted: dto.status == TaskStatus.completed,
-      // TODO: Mapear priority e category quando disponíveis no DTO
+      priority: TaskPriority.fromApiValue(dto.priority),
+      category: TaskCategory.fromApiValue(dto.category),
     );
   }
 
-  /// Formatar horário para exibição (HH:mm)
-  String _formatTime(DateTime dateTime) {
-    return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+  /// Converter Task para TaskRequest
+  TaskRequestDto _convertTaskToDto(Task task) {
+    return TaskRequestDto(
+      title: task.title,
+      description: task.description,
+      status: task.status,
+      priority: task.priority.apiValue,
+      category: task.category.apiValue,
+      dueDate: DateTime(
+        task.date.year,
+        task.date.month,
+        task.date.day,
+        task.time.hour,
+        task.time.minute,
+      ),
+    );
   }
-}
 
+}

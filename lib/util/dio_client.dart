@@ -57,10 +57,10 @@ class DioClient {
       // Adicionar interceptadores
       _addInterceptors();
 
-      print('✅ DioClient inicializado com base URL: $_baseUrl');
+      print('DioClient inicializado com base URL: $_baseUrl');
 
     } catch (e) {
-      print('❌ Erro ao inicializar DioClient: $e');
+      print('Erro ao inicializar DioClient: $e');
     }
   }
 
@@ -69,6 +69,7 @@ class DioClient {
     _dio!.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
+
           try {
             if (_authService != null) {
               final token = await _authService!.getValidToken();

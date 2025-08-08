@@ -1,4 +1,8 @@
 import 'package:app_dopilot/bloc/auth/auth_cubit.dart';
+import 'package:app_dopilot/bloc/task/all_task_cubit.dart';
+import 'package:app_dopilot/bloc/task/new_task_cubit.dart';
+import 'package:app_dopilot/bloc/task/daily_task_cubit.dart';
+import 'package:app_dopilot/data/model/task.dart';
 import 'package:app_dopilot/firebase_options.dart';
 import 'package:app_dopilot/screen/auth/login_screen.dart';
 import 'package:app_dopilot/screen/home/home_screen.dart';
@@ -6,12 +10,12 @@ import 'package:app_dopilot/screen/splash/splash_screen.dart';
 import 'package:app_dopilot/screen/task/all_tasks_screen.dart';
 import 'package:app_dopilot/screen/task/new_task_screen.dart';
 import 'package:app_dopilot/service/auth_service.dart';
+import 'package:app_dopilot/service/firebase_service.dart';
 import 'package:app_dopilot/util/dio_client.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'bloc/task/daily_tasks_cubit.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +26,10 @@ void main() async {
   // Inicializar DioClient com AuthService
   final authService = AuthService();
   DioClient.initialize(authService);
+
+  // Inicializar Firebase Service (FCM)
+  final firebaseService = FirebaseService();
+  await firebaseService.initialize();
 
   runApp(const MyApp());
 }
@@ -35,7 +43,9 @@ class MyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => AuthCubit()),
-        BlocProvider(create: (context) => DailyTasksCubit()),
+        BlocProvider(create: (context) => DailyTaskCubit()),
+        BlocProvider(create: (context) => AllTaskCubit()),
+        BlocProvider(create: (context) => NewTaskCubit()),
       ],
       child: MaterialApp(
         title: 'DoPilot',
@@ -48,8 +58,18 @@ class MyApp extends StatelessWidget {
           '/': (context) => const SplashScreen(),
           '/login': (context) => const LoginScreen(),
           '/home': (context) => const HomeScreen(),
-          '/new-task': (context) => const NewTaskScreen(),
           '/all-tasks': (context) => const AllTasksScreen(),
+        },
+        onGenerateRoute: (settings) {
+          switch (settings.name) {
+            case '/new-task':
+              final task = settings.arguments as Task?;
+              return MaterialPageRoute(
+                builder: (context) => NewTaskScreen(task: task),
+              );
+            default:
+              return null;
+          }
         },
       ),
     );

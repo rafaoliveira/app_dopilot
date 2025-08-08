@@ -13,7 +13,7 @@ import '../data/dto/token_unregister_request_dto.dart';
 class DeviceTokenRepository {
   
   /// Registrar token de dispositivo para notificações push
-  static Future<DeviceTokenResponseDto?> registerDeviceToken(
+  Future<DeviceTokenResponseDto?> registerDeviceToken(
     DeviceTokenRequestDto request,
   ) async {
     try {
@@ -34,7 +34,7 @@ class DeviceTokenRepository {
   }
 
   /// Remover registro de token de dispositivo
-  static Future<bool> unregisterDeviceToken(String token) async {
+  Future<bool> unregisterDeviceToken(String token) async {
     try {
       final request = TokenUnregisterRequestDto(token: token);
       

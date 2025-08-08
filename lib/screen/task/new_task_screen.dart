@@ -1,11 +1,15 @@
+import 'package:app_dopilot/bloc/task/new_task_cubit.dart';
+import 'package:app_dopilot/bloc/task/new_task_state.dart';
 import 'package:app_dopilot/screen/task/widget/task_app_bar.dart';
+import 'package:app_dopilot/util/date_util.dart';
 import 'package:app_dopilot/widget/app_button.dart';
 import 'package:app_dopilot/widget/app_text.dart';
 import 'package:app_dopilot/widget/app_text_field.dart';
 import 'package:flutter/material.dart';
-import '../../data/model/task_data.dart';
-import '../../data/model/task_priority.dart';
-import '../../data/model/task_category.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../data/model/task.dart';
+import '../../data/enum/task_priority.dart';
+import '../../data/enum/task_category.dart';
 import '../../util/colors.dart';
 import '../../util/validators.dart';
 
@@ -18,7 +22,7 @@ import '../../util/validators.dart';
 /// - Prioridade (Alta, Média, Baixa)
 /// - Categoria (Trabalho, Pessoal, Saúde, Estudos)
 class NewTaskScreen extends StatefulWidget {
-  final TaskData? task; // null = nova tarefa, TaskData = editar tarefa
+  final Task? task; // null = nova tarefa, TaskData = editar tarefa
 
   const NewTaskScreen({super.key, this.task});
 
@@ -48,18 +52,22 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
 
   void _initializeWithDefaults() {
     _selectedDate = DateTime.now();
-    _dateController.text = _formatDate(_selectedDate!);
+    _selectedTime = TimeOfDay.now();
+    _dateController.text = DateUtil.formatDate(_selectedDate!);
+    _timeController.text = DateUtil.formatTimeOfDay(_selectedTime!);
   }
 
-  /// TODO: Implementar carregamento dos dados da tarefa para edição
   void _loadTaskData() {
     if (widget.task != null) {
       final task = widget.task!;
       _titleController.text = task.title ?? '';
       _descriptionController.text = task.description ?? '';
-      // TODO: Carregar outros campos como data, prioridade e categoria
-      // _selectedPriority = task.priority;
-      // _selectedCategory = task.category;
+      _selectedDate = task.date;
+      _selectedTime = task.time;
+      _dateController.text = DateUtil.formatDate(_selectedDate!);
+      _timeController.text = DateUtil.formatTimeOfDay(_selectedTime!);
+      _selectedPriority = task.priority;
+      _selectedCategory = task.category;
     }
   }
 
@@ -74,29 +82,50 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white, // Background branco conforme solicitado
-      appBar: TaskAppBar(title: widget.task != null ? 'Editar Tarefa' : 'Nova Tarefa'),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildTitleField(),
-                const SizedBox(height: 20),
-                _buildDescriptionField(),
-                const SizedBox(height: 20),
-                _buildDateTimeSection(),
-                const SizedBox(height: 20),
-                _buildPrioritySection(),
-                const SizedBox(height: 20),
-                _buildCategorySection(),
-                const SizedBox(height: 32),
-                _buildSaveButton(),
-              ],
+    return BlocListener<NewTaskCubit, NewTaskState>(
+      listener: (context, state) {
+        if (state is NewTaskSuccess) {
+          // Sucesso - mostrar mensagem e voltar
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Sucesso! Tarefa salva.'),
+              backgroundColor: AppColors.successGreen,
+            ),
+          );
+          Navigator.pop(context, true); // Retorna true indicando que a tarefa foi salva
+        } else if (state is NewTaskError) {
+          // Erro - mostrar mensagem
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white, // Background branco conforme solicitado
+        appBar: TaskAppBar(
+          title: widget.task != null ? 'Editar Tarefa' : 'Nova Tarefa',
+        ),
+        body: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildTitleField(),
+                  const SizedBox(height: 20),
+                  _buildDescriptionField(),
+                  const SizedBox(height: 20),
+                  _buildDateTimeSection(),
+                  const SizedBox(height: 20),
+                  _buildPrioritySection(),
+                  const SizedBox(height: 20),
+                  _buildCategorySection(),
+                  const SizedBox(height: 32),
+                  _buildSaveButton(context),
+                ],
+              ),
             ),
           ),
         ),
@@ -109,7 +138,8 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       controller: _titleController,
       label: 'Título da tarefa',
       hint: 'Digite o título da tarefa',
-      validator: Validators.validateTaskTitle, // Validação movida para util/validators
+      validator: Validators.validateTaskTitle,
+      // Validação movida para util/validators
       textInputAction: TextInputAction.next,
     );
   }
@@ -119,8 +149,10 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       controller: _descriptionController,
       label: 'Descrição',
       hint: 'Adicione uma descrição detalhada...',
-      maxLines: 3, // Propriedade maxLines implementada
-      validator: Validators.validateTaskDescription, // Validação movida para util/validators
+      maxLines: 3,
+      // Propriedade maxLines implementada
+      validator: Validators.validateTaskDescription,
+      // Validação movida para util/validators
       textInputAction: TextInputAction.done,
     );
   }
@@ -397,7 +429,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     if (date != null) {
       setState(() {
         _selectedDate = date;
-        _dateController.text = _formatDate(date);
+        _dateController.text = DateUtil.formatDate(date);
       });
     }
   }
@@ -419,32 +451,38 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     if (time != null) {
       setState(() {
         _selectedTime = time;
-        _timeController.text =
-            '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+        _timeController.text = DateUtil.formatTimeOfDay(time);
       });
     }
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
-  }
-
-  void _handleSaveTask() {
+  void _handleSaveTask(BuildContext context) {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    if (widget.task != null && widget.task!.id != null) {
-      // Editar tarefa existente
-    } else {
-      // Criar nova tarefa
-    }
+    final newTaskCubit = context.read<NewTaskCubit>();
+
+    newTaskCubit.createOrUpdateTask(
+      id: widget.task?.id, // Se for edição, passa o ID
+      title: _titleController.text.trim(),
+      description: _descriptionController.text.trim(),
+      time: _selectedTime!,
+      date: _selectedDate!,
+      status: widget.task?.status,
+      priority: _selectedPriority!,
+      category: _selectedCategory!,
+    );
+
+    setState(() {
+      _isLoading = true;
+    });
   }
 
-  Widget _buildSaveButton() {
+  Widget _buildSaveButton(BuildContext context) {
     return AppButton(
       text: 'Salvar',
-      onPressed: _handleSaveTask,
+      onPressed: () => _handleSaveTask(context),
       isLoading: _isLoading,
     );
   }

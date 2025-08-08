@@ -32,7 +32,7 @@ class NotificationRepository {
         return null;
       }
     } catch (e) {
-      print('❌ Erro ao buscar notificações: $e');
+      print('Erro ao buscar notificações: $e');
       return null;
     }
   }
@@ -52,7 +52,7 @@ class NotificationRepository {
         return null;
       }
     } catch (e) {
-      print('❌ Erro ao buscar notificações não lidas: $e');
+      print('Erro ao buscar notificações não lidas: $e');
       return null;
     }
   }
@@ -69,7 +69,7 @@ class NotificationRepository {
         return null;
       }
     } catch (e) {
-      print('❌ Erro ao buscar contagem de notificações não lidas: $e');
+      print('Erro ao buscar contagem de notificações não lidas: $e');
       return null;
     }
   }
@@ -91,7 +91,7 @@ class NotificationRepository {
         return null;
       }
     } catch (e) {
-      print('❌ Erro ao marcar notificação como lida: $e');
+      print('Erro ao marcar notificação como lida: $e');
       return null;
     }
   }
@@ -107,7 +107,7 @@ class NotificationRepository {
         return false;
       }
     } catch (e) {
-      print('❌ Erro ao deletar notificação: $e');
+      print('Erro ao deletar notificação: $e');
       return false;
     }
   }
@@ -134,7 +134,7 @@ class NotificationRepository {
         return false;
       }
     } catch (e) {
-      print('❌ Erro ao enviar notificação de teste: $e');
+      print('Erro ao enviar notificação de teste: $e');
       return false;
     }
   }

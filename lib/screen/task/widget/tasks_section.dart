@@ -1,12 +1,13 @@
 import 'package:app_dopilot/screen/task/widget/task_item.dart';
+import 'package:app_dopilot/util/date_util.dart';
 import 'package:flutter/material.dart';
 import '../../../util/colors.dart';
 import '../../../util/constants.dart';
-import '../../../data/model/task_data.dart';
+import '../../../data/model/task.dart';
 
 /// Widget da seção "Tarefas do Dia"
 class TasksSection extends StatelessWidget {
-  final List<TaskData> tasks;
+  final List<Task> tasks;
   final VoidCallback? onSeeAll;
   final Function(int index)? onTaskToggle;
 
@@ -52,7 +53,7 @@ class TasksSection extends StatelessWidget {
                 final task = tasks[index];
                 return TaskItem(
                   title: task.title,
-                  time: task.time,
+                  time: DateUtil.formatTimeOfDay(task.time),
                   isCompleted: task.isCompleted,
                   onToggle: () => onTaskToggle?.call(index),
                 );

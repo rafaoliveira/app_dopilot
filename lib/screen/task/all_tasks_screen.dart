@@ -1,6 +1,12 @@
+import 'dart:async';
+
 import 'package:app_dopilot/screen/task/widget/task_app_bar.dart';
 import 'package:flutter/material.dart';
-import '../../data/model/task_data.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../bloc/task/all_task_cubit.dart';
+import '../../bloc/task/all_task_state.dart';
+import '../../data/model/task.dart';
 import '../../util/colors.dart';
 import '../../widget/app_floating_action_button.dart';
 import 'widget/task_item_full.dart';
@@ -25,22 +31,22 @@ class _AllTasksScreenState extends State<AllTasksScreen>
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
   late TabController _tabController;
-  String _searchQuery = '';
+  Timer? _debounceTimer;
+  String? _searchQuery;
+  String? _statusFilter;
   String label = 'Tarefas';
   int totalTasks = 0;
   bool isUpdating = false;
-  List<TaskData> tasks = [
-    TaskData(title: 'Sample 1', time: '20/07/2025 18:00', isCompleted: false),
-    TaskData(title: 'Sample 2', time: '21/07/2025 17:00', isCompleted: false),
-    TaskData(title: 'Sample 3', time: '22/07/2025 11:00', isCompleted: true),
-    TaskData(title: 'Sample 4', time: '23/07/2025 12:00', isCompleted: false),
-  ];
+  bool isLoading = false;
+  List<Task> tasks = [];
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _scrollController.addListener(_onScroll);
+    // Carregar todas as tarefas ao inicializar
+    _loadTasks();
   }
 
   @override
@@ -48,6 +54,7 @@ class _AllTasksScreenState extends State<AllTasksScreen>
     _searchController.dispose();
     _scrollController.dispose();
     _tabController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
   }
 
@@ -57,8 +64,18 @@ class _AllTasksScreenState extends State<AllTasksScreen>
   }
 
   void _onSearchChanged(String query) {
+    // Cancela o timer anterior se existir
+    _debounceTimer?.cancel();
+
+    // Atualiza a query imediatamente para mostrar no UI
     setState(() {
       _searchQuery = query;
+    });
+
+    // Cria um novo timer com delay de 500ms
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      // Executa a busca apenas após o delay
+      _loadTasks();
     });
   }
 
@@ -66,24 +83,65 @@ class _AllTasksScreenState extends State<AllTasksScreen>
     // Limpar pesquisa ao trocar de aba
     _searchController.clear();
     _searchQuery = '';
+
+    setState(() {
+      if (index == 0) {
+        _statusFilter = null;
+      } else if (index == 1) {
+        _statusFilter = 'PENDING';
+      } else if (index == 2) {
+      _statusFilter = 'COMPLETED';
+      }
+    });
+
+    _loadTasks();
+
+  }
+
+  void _loadTasks() {
+    context.read<AllTaskCubit>().loadTasks(status: _statusFilter, title: _searchQuery);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: TaskAppBar(title: 'Todas as Tarefas'),
-      backgroundColor: AppColors.backgroundGray,
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildSearchBar(),
-            _buildTabs(),
-            _buildTasksList(),
-          ],
+    return BlocListener<AllTaskCubit, AllTaskState>(
+      listener: (context, state) {
+        if (state is AllTaskLoading) {
+          setState(() {
+            isLoading = true;
+          });
+        } else if (state is AllTaskLoaded) {
+          setState(() {
+            tasks = state.tasks;
+            isLoading = false;
+          });
+        } else if (state is AllTaskDeleted) {
+          // Atualizar a lista de tarefas após exclusão
+          _loadTasks();
+        } else if (state is AllTaskError) {
+          setState(() {
+            isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red[600],
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        appBar: TaskAppBar(title: 'Todas as Tarefas'),
+        backgroundColor: AppColors.backgroundGray,
+        body: SafeArea(
+          child: Column(
+            children: [_buildSearchBar(), _buildTabs(), _buildTasksList()],
+          ),
         ),
-      ),
-      floatingActionButton: AppFloatingActionButton(
-        onPressed: () => Navigator.of(context).pushNamed('/new-task'),
+        floatingActionButton: AppFloatingActionButton(
+          onPressed: () => Navigator.of(context).pushNamed('/new-task'),
+        ),
       ),
     );
   }
@@ -98,7 +156,7 @@ class _AllTasksScreenState extends State<AllTasksScreen>
         decoration: InputDecoration(
           hintText: 'Buscar tarefas...',
           prefixIcon: const Icon(Icons.search, color: Colors.grey),
-          suffixIcon: _searchQuery.isNotEmpty
+          suffixIcon: _searchQuery != null && _searchQuery!.isNotEmpty
               ? IconButton(
                   icon: const Icon(Icons.clear, color: Colors.grey),
                   onPressed: () {
@@ -142,37 +200,54 @@ class _AllTasksScreenState extends State<AllTasksScreen>
 
   Widget _buildTasksList() {
     return Expanded(
-      child: ListView.builder(
-          controller: _scrollController,
-          padding: const EdgeInsets.all(20),
-          itemCount: tasks.length,
-          itemBuilder: (context, index) {
-
-            final task = tasks[index];
-
-            return TaskItemFull(
-              task: task,
-              isUpdating: isUpdating,
-              onToggle: () {
-
-              },
-              onEdit: () {
-                _editTask(task);
-              },
-              onDelete: () {
-                _deleteTask(task);
-              },
-            );
-          },
-      ),
+      child: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : tasks.isEmpty
+              ? const Center(
+                  child: Text(
+                    'Nenhuma tarefa encontrada',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey,
+                    ),
+                  ),
+                )
+              : ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.all(20),
+                  itemCount: tasks.length,
+                  itemBuilder: (context, index) {
+                    final task = tasks[index];
+                    return TaskItemFull(
+                      task: task,
+                      isUpdating: isUpdating,
+                      onToggle: () {},
+                      onEdit: () {
+                        _editTask(task);
+                      },
+                      onDelete: () {
+                        _deleteTask(task);
+                      },
+                    );
+                  },
+                ),
     );
   }
 
-  void _editTask(TaskData task) {
+  void _editTask(Task task) async {
+    final result = await Navigator.of(context).pushNamed('/new-task', arguments: task);
+
+    // Se retornou algum resultado (tarefa foi salva), recarregar a lista
+    if (result != null) {
+      _loadTasks();
+    }
   }
 
-  void _deleteTask(TaskData task) {
-
+  void _deleteTask(Task task) {
+    context.read<AllTaskCubit>().deleteTask(task.id!);
   }
 
 }
+

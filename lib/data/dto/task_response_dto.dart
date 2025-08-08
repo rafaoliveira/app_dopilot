@@ -1,4 +1,4 @@
-import '../model/task_status.dart';
+import '../enum/task_status.dart';
 
 /// DTO para resposta da API (TaskResponseDTO)
 class TaskResponseDto {
@@ -10,6 +10,7 @@ class TaskResponseDto {
   final DateTime dueDate;
   final TaskStatus status;
   final int priority;
+  final String category;
 
   const TaskResponseDto({
     required this.id,
@@ -20,6 +21,7 @@ class TaskResponseDto {
     required this.dueDate,
     required this.status,
     required this.priority,
+    required this.category,
   });
 
   /// Cria DTO a partir da resposta da API
@@ -34,7 +36,8 @@ class TaskResponseDto {
           : null,
       dueDate: DateTime.parse(json['dueDate']),
       status: TaskStatus.fromApiValue(json['status'] ?? 'PENDING'),
-      priority: json['priority'] ?? 1,
+      priority: json['priority'],
+      category: json['category'],
     );
   }
 
@@ -49,11 +52,12 @@ class TaskResponseDto {
       'dueDate': dueDate.toIso8601String(),
       'status': status.apiValue,
       'priority': priority,
+      'category': category,
     };
   }
 
   @override
   String toString() {
-    return 'TaskResponseDto(id: $id, title: $title, description: $description, createdAt: $createdAt, completedAt: $completedAt, dueDate: $dueDate, status: $status, priority: $priority)';
+    return 'TaskResponseDto(id: $id, title: $title, description: $description, createdAt: $createdAt, completedAt: $completedAt, dueDate: $dueDate, status: $status, priority: $priority, category: $category)';
   }
 }
