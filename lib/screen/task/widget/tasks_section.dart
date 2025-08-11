@@ -1,21 +1,24 @@
 import 'package:app_dopilot/screen/task/widget/task_item.dart';
-import 'package:app_dopilot/util/date_util.dart';
+import 'package:app_dopilot/widget/empty_state_widget.dart';
 import 'package:flutter/material.dart';
+
+import '../../../data/model/task.dart';
 import '../../../util/colors.dart';
 import '../../../util/constants.dart';
-import '../../../data/model/task.dart';
 
 /// Widget da seção "Tarefas do Dia"
 class TasksSection extends StatelessWidget {
   final List<Task> tasks;
   final VoidCallback? onSeeAll;
   final Function(int index)? onTaskToggle;
+  final bool? isLoading;
 
   const TasksSection({
     super.key,
     required this.tasks,
     this.onSeeAll,
     this.onTaskToggle,
+    this.isLoading = false,
   });
 
   @override
@@ -46,18 +49,34 @@ class TasksSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppConstants.paddingMedium),
-          Expanded(
-            child: ListView.builder(
-              itemCount: tasks.length,
-              itemBuilder: (context, index) {
-                final task = tasks[index];
-                return TaskItem(
-                  title: task.title,
-                  time: DateUtil.formatTimeOfDay(task.time),
-                  isCompleted: task.isCompleted,
-                  onToggle: () => onTaskToggle?.call(index),
-                );
-              },
+          Visibility(
+            visible: isLoading!,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          Visibility(
+            visible: !isLoading! && tasks.isEmpty,
+            child: Center(
+              child: EmptyState(
+                icon: Icons.task_alt,
+                title: 'Nenhuma tarefa encontrada',
+                subtitle:
+                    'Você ainda não possui tarefas criadas.\nQue tal começar criando uma nova?',
+              ),
+            ),
+          ),
+          Visibility(
+            visible: !isLoading! && tasks.isNotEmpty,
+            child: Expanded(
+              child: ListView.builder(
+                itemCount: tasks.length,
+                itemBuilder: (context, index) {
+                  final task = tasks[index];
+                  return TaskItem(
+                    task: task,
+                    onToggle: () => onTaskToggle?.call(index),
+                  );
+                },
+              ),
             ),
           ),
         ],

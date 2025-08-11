@@ -1,5 +1,6 @@
 import 'package:app_dopilot/bloc/task/new_task_cubit.dart';
 import 'package:app_dopilot/bloc/task/new_task_state.dart';
+import 'package:app_dopilot/data/enum/task_status.dart';
 import 'package:app_dopilot/screen/task/widget/task_app_bar.dart';
 import 'package:app_dopilot/util/date_util.dart';
 import 'package:app_dopilot/widget/app_button.dart';
@@ -43,6 +44,9 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   TaskCategory? _selectedCategory;
   bool _isLoading = false;
 
+  bool get _canEditTask =>
+      widget.task == null || widget.task!.status != TaskStatus.completed;
+
   @override
   void initState() {
     super.initState();
@@ -60,7 +64,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   void _loadTaskData() {
     if (widget.task != null) {
       final task = widget.task!;
-      _titleController.text = task.title ?? '';
+      _titleController.text = task.title;
       _descriptionController.text = task.description ?? '';
       _selectedDate = task.date;
       _selectedTime = task.time;
@@ -84,7 +88,11 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   Widget build(BuildContext context) {
     return BlocListener<NewTaskCubit, NewTaskState>(
       listener: (context, state) {
-        if (state is NewTaskSuccess) {
+        if (state is NewTaskLoading) {
+          setState(() {
+            _isLoading = true;
+          });
+        } else if (state is NewTaskSuccess) {
           // Sucesso - mostrar mensagem e voltar
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -92,8 +100,14 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
               backgroundColor: AppColors.successGreen,
             ),
           );
-          Navigator.pop(context, true); // Retorna true indicando que a tarefa foi salva
+          Navigator.pop(
+            context,
+            true,
+          ); // Retorna true indicando que a tarefa foi salva
         } else if (state is NewTaskError) {
+          setState(() {
+            _isLoading = false;
+          });
           // Erro - mostrar mensagem
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text(state.message), backgroundColor: Colors.red),
@@ -123,7 +137,10 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                   const SizedBox(height: 20),
                   _buildCategorySection(),
                   const SizedBox(height: 32),
-                  _buildSaveButton(context),
+                  Visibility(
+                    visible: _canEditTask,
+                    child: _buildSaveButton(context),
+                  ),
                 ],
               ),
             ),
@@ -138,6 +155,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       controller: _titleController,
       label: 'Título da tarefa',
       hint: 'Digite o título da tarefa',
+      enabled: _canEditTask,
       validator: Validators.validateTaskTitle,
       // Validação movida para util/validators
       textInputAction: TextInputAction.next,
@@ -149,6 +167,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       controller: _descriptionController,
       label: 'Descrição',
       hint: 'Adicione uma descrição detalhada...',
+      enabled: _canEditTask,
       maxLines: 3,
       // Propriedade maxLines implementada
       validator: Validators.validateTaskDescription,
@@ -167,7 +186,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
           children: [
             Expanded(
               child: GestureDetector(
-                onTap: _selectDate,
+                onTap: _canEditTask ? _selectDate : null,
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -208,7 +227,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
             const SizedBox(width: 12),
             Expanded(
               child: GestureDetector(
-                onTap: _selectTime,
+                onTap: _canEditTask ? _selectTime : null,
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
@@ -290,7 +309,9 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedPriority = isSelected ? null : priority;
+          if (_canEditTask) {
+            _selectedPriority = isSelected ? null : priority;
+          }
         });
       },
       child: Container(
@@ -364,7 +385,9 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     return GestureDetector(
       onTap: () {
         setState(() {
-          _selectedCategory = isSelected ? null : category;
+          if (_canEditTask) {
+            _selectedCategory = isSelected ? null : category;
+          }
         });
       },
       child: Container(
@@ -464,7 +487,8 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     final newTaskCubit = context.read<NewTaskCubit>();
 
     newTaskCubit.createOrUpdateTask(
-      id: widget.task?.id, // Se for edição, passa o ID
+      id: widget.task?.id,
+      // Se for edição, passa o ID
       title: _titleController.text.trim(),
       description: _descriptionController.text.trim(),
       time: _selectedTime!,
@@ -473,10 +497,6 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       priority: _selectedPriority!,
       category: _selectedCategory!,
     );
-
-    setState(() {
-      _isLoading = true;
-    });
   }
 
   Widget _buildSaveButton(BuildContext context) {

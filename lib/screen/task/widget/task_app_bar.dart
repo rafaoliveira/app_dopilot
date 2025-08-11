@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../data/model/task.dart';
+
 import '../../../util/colors.dart';
 
 /// AppBar customizado para a tela nova tarefa

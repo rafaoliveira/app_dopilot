@@ -1,3 +1,5 @@
+import 'package:app_dopilot/data/enum/task_status.dart';
+import 'package:app_dopilot/util/date_util.dart';
 import 'package:flutter/material.dart';
 import '../../../data/model/task.dart';
 import '../../../util/colors.dart';
@@ -53,7 +55,10 @@ class TaskItemFull extends StatelessWidget {
                         ],
                       ),
                     ),
-                    _buildActionMenu(context),
+                    Visibility(
+                      visible: task.status != TaskStatus.completed,
+                      child: _buildActionMenu(context),
+                    ),
                   ],
                 ),
               ],
@@ -129,7 +134,7 @@ class TaskItemFull extends StatelessWidget {
         Icon(Icons.schedule, size: 16, color: Colors.grey.shade500),
         const SizedBox(width: 4),
         Text(
-          task.time.toString(),
+          DateUtil.formatTimeOfDay(task.time),
           style: TextStyle(
             fontSize: 13,
             color: Colors.grey.shade500,

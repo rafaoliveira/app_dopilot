@@ -1,3 +1,5 @@
+import 'package:app_dopilot/data/model/task.dart';
+import 'package:app_dopilot/util/date_util.dart';
 import 'package:flutter/material.dart';
 import '../../../widget/app_card.dart';
 import '../../../util/colors.dart';
@@ -5,16 +7,12 @@ import '../../../util/constants.dart';
 
 /// Widget individual para item de tarefa
 class TaskItem extends StatelessWidget {
-  final String title;
-  final String time;
-  final bool isCompleted;
+  final Task task;
   final VoidCallback? onToggle;
 
   const TaskItem({
     super.key,
-    required this.title,
-    required this.time,
-    required this.isCompleted,
+    required this.task,
     this.onToggle,
   });
 
@@ -22,6 +20,9 @@ class TaskItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onLongPress: onToggle,
+      onTap: () {
+        Navigator.of(context).pushNamed('/new-task', arguments: {'task': task});
+      },
       child: AppCard(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(AppConstants.paddingMedium),
@@ -32,12 +33,12 @@ class TaskItem extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    task.title,
                     style: TextStyle(
                       fontSize: AppConstants.fontSizeLarge,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary,
-                      decoration: isCompleted
+                      decoration: task.isCompleted
                           ? TextDecoration.lineThrough
                           : null,
                     ),
@@ -52,7 +53,7 @@ class TaskItem extends StatelessWidget {
                       ),
                       const SizedBox(width: AppConstants.paddingXSmall),
                       Text(
-                        time,
+                        DateUtil.formatTimeOfDay(task.time),
                         style: TextStyle(
                           fontSize: AppConstants.fontSizeMedium,
                           color: AppColors.textSecondary,
@@ -70,17 +71,17 @@ class TaskItem extends StatelessWidget {
                 height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isCompleted
+                  color: task.isCompleted
                       ? AppColors.successGreen
                       : Colors.transparent,
                   border: Border.all(
-                    color: isCompleted
+                    color: task.isCompleted
                         ? AppColors.successGreen
                         : Colors.grey[400]!,
                     width: 2,
                   ),
                 ),
-                child: isCompleted
+                child: task.isCompleted
                     ? const Icon(
                         Icons.check,
                         size: AppConstants.iconSizeSmall,

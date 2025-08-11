@@ -220,7 +220,7 @@ class FirebaseService {
   Future<void> _waitForAPNSToken() async {
     try {
       int attempts = 0;
-      int maxAttempts = 15; // Aumentar tentativas
+      int maxAttempts = 1; // Aumentar tentativas
       Duration delayBetweenAttempts = const Duration(milliseconds: 1000); // Aumentar delay
 
       while (attempts < maxAttempts) {

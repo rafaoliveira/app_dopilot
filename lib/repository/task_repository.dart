@@ -43,8 +43,6 @@ class TaskRepository {
   /// Retorna TaskResponseDto com dados atualizados ou null em caso de erro
   Future<TaskResponseDto?> updateTask(int taskId, TaskRequestDto taskRequest) async {
 
-    print('TASK ID ===========> $taskId');
-
     try {
       final response = await DioClient.put<Map<String, dynamic>>(
         '/api/v1/tasks/$taskId',

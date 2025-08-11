@@ -25,6 +25,8 @@ class NewTaskCubit extends Cubit<NewTaskState> {
     required TaskCategory category,
   }) async {
 
+    emit(NewTaskLoading());
+
     try {
       final task = Task(
         id: id,

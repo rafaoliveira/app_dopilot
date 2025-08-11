@@ -63,7 +63,8 @@ class MyApp extends StatelessWidget {
         onGenerateRoute: (settings) {
           switch (settings.name) {
             case '/new-task':
-              final task = settings.arguments as Task?;
+              var arguments = settings.arguments as Map<String, dynamic>?;
+              final task = arguments?['task'] as Task?;
               return MaterialPageRoute(
                 builder: (context) => NewTaskScreen(task: task),
               );

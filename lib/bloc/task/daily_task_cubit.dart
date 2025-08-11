@@ -56,7 +56,7 @@ class DailyTaskCubit extends Cubit<DailyTasksState> {
       ));
 
       // Usar o service para atualizar o status
-      final updatedTask = await _taskService.toggleTaskCompletion(taskId, newStatus);
+      final updatedTask = await _taskService.toggleTaskCompletion(taskId);
 
       if (updatedTask != null) {
         // Atualizar com dados retornados do service
@@ -82,66 +82,4 @@ class DailyTaskCubit extends Cubit<DailyTasksState> {
     }
   }
 
-  /// Desfazer última alteração de status
-  Future<void> undoLastChange(Task previousTask) async {
-    final currentState = state;
-    if (currentState is! DailyTasksUpdated) return;
-
-    try {
-      // Usar o service para reverter na API
-      final revertedTask = await _taskService.toggleTaskCompletion(
-        previousTask.id!,
-        previousTask.isCompleted,
-      );
-
-      if (revertedTask != null) {
-        // Atualizar lista com estado anterior
-        final taskIndex = currentState.tasks.indexWhere((t) => t.id == previousTask.id!);
-        if (taskIndex != -1) {
-          final revertedTasks = List<Task>.from(currentState.tasks);
-          revertedTasks[taskIndex] = revertedTask;
-
-          emit(DailyTasksLoaded(
-            tasks: revertedTasks,
-            loadedAt: DateTime.now(),
-          ));
-        }
-      } else {
-        throw Exception('Erro na API ao desfazer alteração');
-      }
-    } catch (e) {
-      emit(DailyTasksError(
-        message: 'Erro ao desfazer alteração: $e',
-        tasks: currentState.tasks,
-      ));
-    }
-  }
-
-  /// Atualizar lista com nova tarefa criada
-  void addTask(Task newTask) {
-    final currentState = state;
-    if (currentState is DailyTasksLoaded) {
-      final updatedTasks = List<Task>.from(currentState.tasks);
-      updatedTasks.add(newTask);
-      // A ordenação agora é responsabilidade do service, mas aqui fazemos uma ordenação simples
-      updatedTasks.sort((a, b) => a.time.compareTo(b.time));
-
-      emit(DailyTasksLoaded(
-        tasks: updatedTasks,
-        loadedAt: DateTime.now(),
-      ));
-    }
-  }
-
-  /// Obter estatísticas das tarefas atuais
-  ///
-  /// Usa o service para calcular as estatísticas
-  Map<String, int> getStats() {
-    final currentState = state;
-    if (currentState is DailyTasksLoaded) {
-      return _taskService.calculateStatsFromTasks(currentState.tasks);
-    }
-
-    return {'total': 0, 'completed': 0, 'pending': 0};
-  }
 }

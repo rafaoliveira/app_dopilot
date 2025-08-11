@@ -57,6 +57,9 @@ class AllTaskLoaded extends AllTaskState {
 /// Estado de sucesso de tarefa deletada
 class AllTaskDeleted extends AllTaskState {}
 
+/// Estado de sucesso de tarefa atualizada para completada
+class AllTaskUpdated extends AllTaskState {}
+
 /// Estado de erro
 class AllTaskError extends AllTaskState {
   final String message;

@@ -18,12 +18,22 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentBottomNavIndex = 0;
+  late HomeTaskController homeTaskController;
+  late List<Widget> _screens;
 
-  final List<Widget> _screens = [
-    HomeTaskScreen(),
-    StatisticsScreen(),
-    NotificationsScreen(),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _screens = [
+      HomeTaskScreen(
+        onSeeAllCallback: (controller) {
+          homeTaskController = controller;
+        },
+      ),
+      StatisticsScreen(),
+      NotificationsScreen(),
+    ];
+  }
 
   //if (state is AuthUnauthenticated) {
   //Navigator.pushReplacementNamed(context, '/login');
@@ -47,8 +57,9 @@ class _HomeScreenState extends State<HomeScreen> {
         floatingActionButton: _currentBottomNavIndex != 0
             ? null
             : AppFloatingActionButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/new-task');
+                onPressed: () async {
+                  await Navigator.of(context).pushNamed('/new-task');
+                  homeTaskController.refreshTasks();
                 },
               ),
       ),

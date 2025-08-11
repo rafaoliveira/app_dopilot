@@ -1,4 +1,5 @@
 import 'package:app_dopilot/bloc/task/all_task_state.dart';
+import 'package:app_dopilot/data/enum/task_status.dart';
 import 'package:app_dopilot/data/model/task.dart';
 import 'package:app_dopilot/service/task_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -51,30 +52,28 @@ class AllTaskCubit extends Cubit<AllTaskState> {
       final success = await _taskService.deleteTask(taskId);
 
       if (success) {
-      emit(AllTaskDeleted());
+        emit(AllTaskDeleted());
       }
-
     } catch (e) {
       emit(AllTaskError(message: 'Erro ao deletar tarefa: $e'));
     }
   }
 
-  /// Atualizar lista quando uma nova tarefa é criada
-  void addTask(Task newTask) {
-    final currentState = state;
-    if (currentState is AllTaskLoaded) {
-      final updatedTasks = [newTask, ...currentState.tasks];
+  /// Alternar status de conclusão de uma tarefa
+  Future<void> toggleTaskCompletion(int taskId) async {
+    try {
+      // Usar o service para atualizar o status
+      final updatedTask = await _taskService.toggleTaskCompletion(taskId);
 
-      emit(
-        AllTaskLoaded(
-          tasks: updatedTasks,
-          searchQuery: currentState.searchQuery,
-          hasMoreTasks: currentState.hasMoreTasks,
-          currentPage: currentState.currentPage,
-          totalTasks: updatedTasks.length,
-          loadedAt: DateTime.now(),
-        ),
-      );
+      if (updatedTask != null) {
+        emit(AllTaskUpdated());
+      } else {
+        emit(
+          AllTaskError(message: 'Erro ao atualizar tarefa. Tente novamente.'),
+        );
+      }
+    } catch (e) {
+      emit(AllTaskError(message: 'Erro ao atualizar tarefa: $e'));
     }
   }
 }

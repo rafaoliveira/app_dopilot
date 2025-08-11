@@ -48,7 +48,7 @@ class TaskService {
       final taskDataList = tasks.map((dto) => _convertToTaskData(dto)).toList();
 
       // Ordenar por horário
-      taskDataList.sort((a, b) => a.time.compareTo(b.time));
+      taskDataList.sort((a, b) => b.time.compareTo(a.time));
 
       return taskDataList;
     } catch (e) {
@@ -96,17 +96,23 @@ class TaskService {
 
   Future<bool> createOrUpdateTask(Task task) async {
     try {
-      TaskResponseDto? responseDto;
 
       TaskRequestDto _taskDto = _convertTaskToDto(task);
 
+      var response;
+
       if (task.id == null) {
-        responseDto = await _taskRepository.createTask(_taskDto);
+        response = await _taskRepository.createTask(_taskDto);
       } else {
-        responseDto = await _taskRepository.updateTask(task.id!, _taskDto);
+        response = await _taskRepository.updateTask(task.id!, _taskDto);
+      }
+
+      if (response == null) {
+        return false;
       }
 
       return true;
+
     } catch (e) {
       return false;
     }
@@ -126,11 +132,11 @@ class TaskService {
   /// Alternar status de conclusão de uma tarefa
   ///
   /// Retorna TaskData atualizada ou null em caso de erro
-  Future<Task?> toggleTaskCompletion(int taskId, bool completed) async {
+  Future<Task?> toggleTaskCompletion(int taskId) async {
     try {
       final updatedDto = await _taskRepository.toggleTaskCompletion(
         taskId,
-        completed,
+        true,
       );
 
       if (updatedDto != null) {

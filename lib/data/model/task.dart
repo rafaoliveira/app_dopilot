@@ -9,14 +9,14 @@ class Task {
   final int? id; // ID da tarefa (opcional para nova tarefa)
   final String title;
   final String? description;
-  final TaskStatus? status;
+  late TaskStatus? status;
   final TimeOfDay time;
   final DateTime date;
-  final bool isCompleted;
+  bool isCompleted;
   final TaskPriority priority;
   final TaskCategory category;
 
-  const Task({
+  Task({
     this.id,
     required this.title,
     this.description,
