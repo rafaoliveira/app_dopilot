@@ -1,15 +1,12 @@
+import 'package:app_dopilot/bloc/notification/notification_cubit.dart';
+import 'package:app_dopilot/bloc/notification/notification_state.dart';
+import 'package:app_dopilot/util/date_util.dart';
+import 'package:app_dopilot/widget/empty_state_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/dto/notification_response_dto.dart';
 import 'widget/notification_item.dart';
 
-/// Tela de Notificações integrada com API
-///
-/// Funcionalidades:
-/// - Lista de notificações vindas da API
-/// - Marcar como lida/não lida
-/// - Deletar notificações
-/// - Contagem de não lidas
-/// - Pull-to-refresh
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -18,63 +15,67 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  List<NotificationResponseDto> notifications = [
-    NotificationResponseDto(
-      id: 1,
-      title: 'Lembrete de Tarefa',
-      message: 'Reunião com a equipe',
-      createdAt: DateTime.now(),
-      read: false,
-    ),
-    NotificationResponseDto(
-      id: 2,
-      title: 'Lembrete de Tarefa',
-      message: 'Reunião com a equipe',
-      createdAt: DateTime.now(),
-      read: true,
-    ),
-  ];
+  List<NotificationResponseDto> notifications = [];
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Carregar todas as notificações ao inicializar
+      context.read<NotificationCubit>().loadNotifications();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<NotificationCubit, NotificationState>(
+      listener: (context, state) {
+        if (state is NotificationLoading) {
+          setState(() {
+            _isLoading = true;
+          });
+        } else if (state is NotificationLoaded) {
+          setState(() {
+            notifications = state.notification;
+            _isLoading = false;
+          });
+        } else if (state is NotificationError) {
+          setState(() {
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
+        }
+      },
+      child: _buildBody(),
+    );
+  }
+
+  Widget _buildBody() {
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
     if (notifications.isEmpty) {
       return _buildEmptyState();
     }
 
-    return _buildNotificationsList(notifications);
+    return _buildNotificationsList();
   }
 
   Widget _buildEmptyState() {
-    return const Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.notifications_none, size: 64, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            'Nenhuma notificação',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey,
-            ),
-          ),
-          SizedBox(height: 8),
-          Text(
-            'Você está em dia com suas notificações!',
-            style: TextStyle(fontSize: 14, color: Colors.grey),
-          ),
-        ],
-      ),
+    return EmptyState(
+      title: 'Nenhuma notificação',
+      subtitle: 'Você está em dia com suas notificações!',
+      icon: Icons.notifications_none,
     );
   }
 
-  Widget _buildNotificationsList(List<NotificationResponseDto> notifications) {
+  Widget _buildNotificationsList() {
     return ListView.builder(
       padding: const EdgeInsets.all(20),
       itemCount: notifications.length,
@@ -86,7 +87,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           onTap: () {
             _showNotificationDetails(notification);
           },
-          onMarkAsRead: notification.read ? null : () {},
+          onMarkAsRead: () {
+            context.read<NotificationCubit>().markAsRead(notification.id);
+          },
           onDelete: () {
             _confirmDelete(notification);
           },
@@ -115,12 +118,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               const SizedBox(height: 8),
             ],
             Text(
-              'Recebida em: ${_formatDate(notification.createdAt)}',
+              'Recebida em: ${DateUtil.formatDate(notification.createdAt)}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
             if (notification.readAt != null)
               Text(
-                'Lida em: ${_formatDate(notification.readAt!)}',
+                'Lida em: ${DateUtil.formatDate(notification.readAt!)}',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
           ],
@@ -129,6 +132,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           if (!notification.read)
             TextButton(
               onPressed: () {
+                context.read<NotificationCubit>().markAsRead(notification.id);
                 Navigator.pop(context);
               },
               child: const Text('Marcar como lida'),
@@ -155,6 +159,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
           TextButton(
             onPressed: () {
+              context.read<NotificationCubit>().delete(notification.id);
               Navigator.pop(context);
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -165,7 +170,4 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  String _formatDate(DateTime dateTime) {
-    return '${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} às ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
-  }
 }

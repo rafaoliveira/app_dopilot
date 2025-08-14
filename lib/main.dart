@@ -1,4 +1,5 @@
 import 'package:app_dopilot/bloc/auth/auth_cubit.dart';
+import 'package:app_dopilot/bloc/notification/notification_cubit.dart';
 import 'package:app_dopilot/bloc/task/all_task_cubit.dart';
 import 'package:app_dopilot/bloc/task/new_task_cubit.dart';
 import 'package:app_dopilot/bloc/task/daily_task_cubit.dart';
@@ -46,6 +47,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => DailyTaskCubit()),
         BlocProvider(create: (context) => AllTaskCubit()),
         BlocProvider(create: (context) => NewTaskCubit()),
+        BlocProvider(create: (context) => NotificationCubit()),
       ],
       child: MaterialApp(
         title: 'DoPilot',

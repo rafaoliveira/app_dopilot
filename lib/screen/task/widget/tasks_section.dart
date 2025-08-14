@@ -51,7 +51,10 @@ class TasksSection extends StatelessWidget {
           const SizedBox(height: AppConstants.paddingMedium),
           Visibility(
             visible: isLoading!,
-            child: Center(child: CircularProgressIndicator()),
+            child: Padding(
+              padding: EdgeInsetsGeometry.only(top: 48),
+              child: CircularProgressIndicator(),
+            ),
           ),
           Visibility(
             visible: !isLoading! && tasks.isEmpty,

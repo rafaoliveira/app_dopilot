@@ -5,9 +5,9 @@ import '../data/dto/test_notification_request_dto.dart';
 import '../data/dto/unread_count_dto.dart';
 
 /// Serviço para integração com a API de Notificações do DOPilot
-/// 
+///
 /// Responsável por gerenciar notificações do usuário
-/// 
+///
 /// Endpoints da API:
 /// - GET /api/v1/notifications - Listar todas as notificações
 /// - GET /api/v1/notification/unread - Listar notificações não lidas
@@ -16,9 +16,9 @@ import '../data/dto/unread_count_dto.dart';
 /// - DELETE /api/v1/notification/{id} - Deletar notificação
 /// - POST /api/v1/notification/test - Enviar notificação de teste
 class NotificationRepository {
-  
+
   /// Obter todas as notificações do usuário
-  static Future<List<NotificationResponseDto>?> getAllNotifications() async {
+  Future<List<NotificationResponseDto>?> getAllNotifications() async {
     try {
       final response = await DioClient.get('/api/v1/notifications');
 
@@ -38,9 +38,9 @@ class NotificationRepository {
   }
 
   /// Obter notificações não lidas
-  static Future<List<NotificationResponseDto>?> getUnreadNotifications() async {
+  Future<List<NotificationResponseDto>?> getUnreadNotifications() async {
     try {
-      final response = await DioClient.get('/api/v1/notification/unread');
+      final response = await DioClient.get('/api/v1/notifications/unread');
 
       if (response.isSuccess && response.data != null) {
         final notifications = (response.data as List)
@@ -58,9 +58,9 @@ class NotificationRepository {
   }
 
   /// Obter contagem de notificações não lidas
-  static Future<int?> getUnreadCount() async {
+  Future<int?> getUnreadCount() async {
     try {
-      final response = await DioClient.get('/api/v1/notification/unread/count');
+      final response = await DioClient.get('/api/v1/notifications/unread/count');
 
       if (response.isSuccess && response.data != null) {
         final count = UnreadCountDto.fromJson(response.data);
@@ -75,12 +75,12 @@ class NotificationRepository {
   }
 
   /// Marcar notificação como lida
-  static Future<NotificationResponseDto?> markAsRead(int id) async {
+  Future<NotificationResponseDto?> markAsRead(int id) async {
     try {
       final updateDto = NotificationUpdateDto(read: true);
-      
+
       final response = await DioClient.patch(
-        '/api/v1/notification/$id',
+        '/api/v1/notifications/$id',
         data: updateDto.toJson(),
       );
 
@@ -97,9 +97,9 @@ class NotificationRepository {
   }
 
   /// Deletar notificação
-  static Future<bool> deleteNotification(int id) async {
+  Future<bool> deleteNotification(int id) async {
     try {
-      final response = await DioClient.delete('/api/v1/notification/$id');
+      final response = await DioClient.delete('/api/v1/notifications/$id');
 
       if (response.isSuccess) {
         return true;
@@ -113,7 +113,7 @@ class NotificationRepository {
   }
 
   /// Enviar notificação de teste
-  static Future<bool> sendTestNotification({
+  Future<bool> sendTestNotification({
     required String title,
     required String body,
   }) async {
@@ -122,9 +122,9 @@ class NotificationRepository {
         title: title,
         body: body,
       );
-      
+
       final response = await DioClient.post(
-        '/api/v1/notification/test',
+        '/api/v1/notifications/test',
         data: testDto.toJson(),
       );
 
