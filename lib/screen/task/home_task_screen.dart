@@ -52,8 +52,6 @@ class _HomeTaskScreenState extends State<HomeTaskScreen> {
           setState(() {
             isLoading = true;
           });
-        } else if (state is DailyTasksUpdated) {
-          //_showSnackBarWithUndo(state.updatedTask, state.previousTask);
         } else if (state is DailyTasksError) {
           setState(() {
             isLoading = false;

@@ -28,7 +28,7 @@ class DailyTaskCubit extends Cubit<DailyTasksState> {
         loadedAt: DateTime.now(),
       ));
     } catch (e) {
-      emit(DailyTasksError(message: 'Erro ao carregar tarefas: $e'));
+      emit(DailyTasksError(message: 'Erro ao carregar tarefas'));
     }
   }
 

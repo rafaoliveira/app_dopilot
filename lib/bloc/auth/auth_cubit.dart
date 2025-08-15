@@ -1,4 +1,4 @@
-import 'package:app_dopilot/service/firebase_service.dart';
+import 'package:app_dopilot/service/firebase_messaging_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../service/auth_service.dart';
@@ -11,11 +11,11 @@ import 'auth_state.dart';
 class AuthCubit extends Cubit<AuthState> {
 
   late final AuthService _authService;
-  late final FirebaseService _firebaseService;
+  late final FirebaseMessagingService _firebaseMessagingService;
 
   AuthCubit() : super(AuthInitial()) {
     _authService = AuthService();
-    _firebaseService = FirebaseService();
+    _firebaseMessagingService = FirebaseMessagingService();
     _initAuthListener();
   }
 
@@ -54,7 +54,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       if (result.isSuccess) {
         // Sincronizar token FCM após login bem-sucedido
-        await _firebaseService.sendTokenToAPI();
+        await _firebaseMessagingService.sendTokenToAPI();
 
         // O listener já vai emitir AuthAuthenticated
       } else {

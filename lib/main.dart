@@ -11,7 +11,10 @@ import 'package:app_dopilot/screen/splash/splash_screen.dart';
 import 'package:app_dopilot/screen/task/all_tasks_screen.dart';
 import 'package:app_dopilot/screen/task/new_task_screen.dart';
 import 'package:app_dopilot/service/auth_service.dart';
-import 'package:app_dopilot/service/firebase_service.dart';
+import 'package:app_dopilot/service/firebase_messaging_service.dart';
+import 'package:app_dopilot/service/firebase_analytics_service.dart';
+import 'package:app_dopilot/service/firebase_crashlytics_service.dart';
+import 'package:app_dopilot/service/firebase_remote_config_service.dart';
 import 'package:app_dopilot/util/dio_client.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
@@ -24,13 +27,21 @@ void main() async {
   // Inicializar Firebase
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  // Inicializar DioClient com AuthService
-  final authService = AuthService();
-  DioClient.initialize(authService);
+  // Inicializar Firebase Crashlytics
+  final firebaseCrashlyticsService = FirebaseCrashlyticsService();
+  await firebaseCrashlyticsService.initialize();
+
+  // Inicializar Firebase Remote Config
+  final firebaseRemoteConfigService = FirebaseRemoteConfigService();
+  await firebaseRemoteConfigService.initialize();
 
   // Inicializar Firebase Service (FCM)
-  final firebaseService = FirebaseService();
-  await firebaseService.initialize();
+  final firebaseMessagingService = FirebaseMessagingService();
+  await firebaseMessagingService.initialize();
+
+  // Inicializar DioClient com AuthService
+  final authService = AuthService();
+  DioClient.initialize(authService, firebaseRemoteConfigService);
 
   runApp(const MyApp());
 }
@@ -41,6 +52,9 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    // Criar instância do Analytics para o observer
+    final firebaseAnalyticsService = FirebaseAnalyticsService();
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (context) => AuthCubit()),
@@ -55,6 +69,9 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF7B2CBF)),
           useMaterial3: true,
         ),
+        navigatorObservers: [
+          firebaseAnalyticsService.observer,
+        ],
         initialRoute: '/',
         routes: {
           '/': (context) => const SplashScreen(),

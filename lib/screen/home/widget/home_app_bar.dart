@@ -1,5 +1,6 @@
 import 'package:app_dopilot/bloc/auth/auth_cubit.dart';
 import 'package:app_dopilot/data/model/bottom_sheet_option.dart';
+import 'package:app_dopilot/service/firebase_crashlytics_service.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -109,6 +110,13 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
         color: AppColors.primaryPurple,
       ),
       BottomSheetOption<String>(
+        value: 'test_crashlytics',
+        title: 'Teste Crashlytics',
+        subtitle: 'Forçar erro para teste do Crashlytics',
+        icon: Icons.bug_report_outlined,
+        color: Colors.orange[600],
+      ),
+      BottomSheetOption<String>(
         value: 'logout',
         title: 'Sair',
         subtitle: 'Fazer logout da conta',
@@ -137,6 +145,9 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
           if (context.mounted) {
             _logout(context);
           }
+          break;
+        case 'test_crashlytics':
+          _testCrashlytics();
           break;
       }
     }
@@ -332,6 +343,44 @@ class HomeAppBar extends StatelessWidget implements PreferredSizeWidget {
     final authCubit = context.read<AuthCubit>();
 
     await authCubit.logout();
+  }
+
+  void _testCrashlytics() async {
+    try {
+      final crashlyticsService = FirebaseCrashlyticsService();
+
+      // Registrar log antes do erro
+      await crashlyticsService.log('Usuário iniciou teste do Crashlytics via menu');
+
+      // Definir chave personalizada para contexto
+      await crashlyticsService.setCustomKey('test_source', 'home_app_bar_menu');
+      await crashlyticsService.setCustomKey('test_timestamp', DateTime.now().millisecondsSinceEpoch);
+
+      // Forçar diferentes tipos de erro para teste
+      // Descomente a linha que você quer testar:
+
+      // 1. Erro não fatal (recomendado para teste)
+      await crashlyticsService.recordError(
+        Exception('Erro de teste forçado pelo usuário'),
+        StackTrace.current,
+        fatal: false,
+      );
+
+      // 2. Crash fatal (use com cuidado - fecha o app)
+      // await crashlyticsService.testCrash();
+
+      // 3. Erro de divisão por zero
+      // int result = 10 ~/ 0;
+
+      // 4. Erro de null pointer
+      // String? nullString;
+      // int length = nullString!.length;
+
+      print('Erro de teste enviado para o Crashlytics');
+
+    } catch (e) {
+      print('Erro ao enviar teste para Crashlytics: $e');
+    }
   }
 
 }

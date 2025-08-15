@@ -109,11 +109,11 @@ class TaskRepository {
         return tasks;
       } else {
         print('Erro ao buscar tarefas: Response unsuccessful');
-        return [];
+        throw Exception('Erro ao buscar tarefas');
       }
     } catch (e) {
       print('Erro na busca de tarefas: $e');
-      return [];
+      rethrow;
     }
   }
 

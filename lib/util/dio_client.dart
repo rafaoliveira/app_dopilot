@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:app_dopilot/service/auth_service.dart';
+import 'package:app_dopilot/service/firebase_remote_config_service.dart';
 import 'package:dio/dio.dart';
 
 import '../data/dto/api_response_dto.dart';
@@ -11,18 +12,21 @@ import '../data/dto/api_response_dto.dart';
 class DioClient {
   static DioClient? _instance;
   static Dio? _dio;
-  static const String _baseUrl = 'https://ms-dopilot-v1.onrender.com/dopilot'; // API DOPilot
-  static const int _connectTimeoutMs = 15000; // 15 segundos
-  static const int _receiveTimeoutMs = 15000; // 15 segundos
+  late String _baseUrl; // API DOPilot
+  late int _connectTimeoutMs; // 15 segundos
+  late int _receiveTimeoutMs; // 15 segundos
   AuthService? _authService;
 
   DioClient._();
 
   /// Inicializar o DioClient com AuthService
-  static void initialize(AuthService authService) {
+  static void initialize(AuthService authService, FirebaseRemoteConfigService firebaseRemoteConfigService) {
     if (_instance == null) {
       _instance = DioClient._();
       _instance!._authService = authService;
+      _instance!._baseUrl = firebaseRemoteConfigService.getApiBaseUrl();
+      _instance!._connectTimeoutMs = firebaseRemoteConfigService.getConnectTimeoutMs();
+      _instance!._receiveTimeoutMs = firebaseRemoteConfigService.getReceiveTimeoutMs();
       _instance!._initializeDio();
     }
   }
@@ -44,9 +48,9 @@ class DioClient {
 
       // Configurações base
       _dio!.options.baseUrl = _baseUrl;
-      _dio!.options.connectTimeout = const Duration(milliseconds: _connectTimeoutMs);
-      _dio!.options.receiveTimeout = const Duration(milliseconds: _receiveTimeoutMs);
-      _dio!.options.sendTimeout = const Duration(milliseconds: _connectTimeoutMs);
+      _dio!.options.connectTimeout = Duration(milliseconds: _connectTimeoutMs);
+      _dio!.options.receiveTimeout = Duration(milliseconds: _receiveTimeoutMs);
+      _dio!.options.sendTimeout = Duration(milliseconds: _connectTimeoutMs);
 
       // Headers padrão
       _dio!.options.headers = {

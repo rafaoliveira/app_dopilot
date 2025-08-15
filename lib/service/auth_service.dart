@@ -1,4 +1,6 @@
 import 'package:app_dopilot/data/model/auth_result.dart';
+import 'package:app_dopilot/service/firebase_analytics_service.dart';
+import 'package:app_dopilot/service/firebase_crashlytics_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +11,10 @@ class AuthService {
   late final AuthRepository _authRepository;
   late final SharedPreferences _preferences;
 
+  // Instâncias dos serviços Firebase
+  late final FirebaseAnalyticsService _analyticsService;
+  late final FirebaseCrashlyticsService _crashlyticsService;
+
   // Chaves para SharedPreferences
   static const String _accessTokenKey = 'dopilot_access_token';
   static const String _refreshTokenKey = 'dopilot_refresh_token';
@@ -17,6 +23,8 @@ class AuthService {
 
   AuthService() {
     _authRepository = AuthRepository();
+    _analyticsService = FirebaseAnalyticsService();
+    _crashlyticsService = FirebaseCrashlyticsService();
     _initPreferences();
   }
 
@@ -60,17 +68,33 @@ class AuthService {
           );
 
           if (!tokenSaved) {
-            print('⚠️ Aviso: Falha ao salvar tokens, mas login foi bem-sucedido');
+            print('Aviso: Falha ao salvar tokens, mas login foi bem-sucedido');
           }
         }
+
+        // Exemplo de uso do Firebase Analytics - Log de login com email
+        await _analyticsService.logLogin('email');
+
+        // Exemplo de uso do Firebase Analytics - Definir ID do usuário
+        await _analyticsService.setUserId(user.uid);
+
+        // Exemplo de uso do Firebase Crashlytics - Definir ID do usuário
+        await _crashlyticsService.setUserId(user.uid);
+
+        // Exemplo de uso do Firebase Crashlytics - Log personalizado
+        await _crashlyticsService.log('Login realizado com email: ${user.email}');
 
         return AuthResult.success(user: user);
       } else {
         return AuthResult.error('Erro desconhecido no login');
       }
     } on FirebaseAuthException catch (e) {
+      // Exemplo de uso do Firebase Crashlytics - Registrar erro
+      await _crashlyticsService.recordError(e, StackTrace.current, fatal: false);
       return AuthResult.error(_getErrorMessage(e.code));
     } catch (e) {
+      // Exemplo de uso do Firebase Crashlytics - Registrar erro inesperado
+      await _crashlyticsService.recordError(e, StackTrace.current, fatal: false);
       return AuthResult.error('Erro inesperado: ${e.toString()}');
     }
   }
@@ -142,15 +166,30 @@ class AuthService {
           }
         }
 
+        // Exemplo de uso do Firebase Analytics - Log de login com Google
+        await _analyticsService.logLogin('google');
+
+        // Exemplo de uso do Firebase Analytics - Definir ID do usuário
+        await _analyticsService.setUserId(user.uid);
+
+        // Exemplo de uso do Firebase Crashlytics - Definir ID do usuário
+        await _crashlyticsService.setUserId(user.uid);
+
+        // Exemplo de uso do Firebase Crashlytics - Log personalizado
+        await _crashlyticsService.log('Login realizado com Google: ${user.email}');
+
         return AuthResult.success(user: user);
       }
 
       return AuthResult.error('Falha ao autenticar com Google');
 
     } on FirebaseAuthException catch (e) {
+      // Exemplo de uso do Firebase Crashlytics - Registrar erro do Firebase
+      await _crashlyticsService.recordError(e, StackTrace.current, fatal: false);
       return AuthResult.error(_getErrorMessage(e.code));
     } catch (e) {
-
+      // Exemplo de uso do Firebase Crashlytics - Registrar erro inesperado
+      await _crashlyticsService.recordError(e, StackTrace.current, fatal: false);
       return AuthResult.error('Erro inesperado: ${e.toString()}');
     }
   }
