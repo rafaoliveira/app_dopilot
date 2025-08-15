@@ -28,7 +28,7 @@ android {
         applicationId = "br.com.impacta.dopilot"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdkVersion(23)
+        minSdkVersion(24)
         targetSdkVersion(flutter.targetSdkVersion)
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -36,10 +36,10 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(System.getenv("KEYSTORE_PATH")) // Ex: /tmp/do-pilot.jks
-            storePassword = System.getenv("KEYSTORE_PASSWORD")
-            keyAlias = System.getenv("KEY_ALIAS")
-            keyPassword = System.getenv("KEY_PASSWORD")
+            storeFile = file("../do-pilot.jks")//file(System.getenv("KEYSTORE_PATH"))
+            storePassword = "dopilot"//System.getenv("KEYSTORE_PASSWORD")
+            keyAlias = "do-pilot"//System.getenv("KEY_ALIAS")
+            keyPassword = "dopilot"//System.getenv("KEY_PASSWORD")
         }
     }
     buildTypes {
