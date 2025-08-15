@@ -17,10 +17,14 @@ class FirebaseService {
 
   final AuthService _authService = AuthService();
   final DeviceTokenRepository _deviceTokenRepository = DeviceTokenRepository();
+  late final prefs;
 
   /// Inicializar Firebase Messaging
   Future<void> initialize() async {
     try {
+
+      prefs = await SharedPreferences.getInstance();
+
       _messaging = FirebaseMessaging.instance;
 
       // Solicitar permissões
@@ -48,7 +52,7 @@ class FirebaseService {
   /// Solicitar permissões para notificações
   Future<void> _requestPermissions() async {
     try {
-      NotificationSettings settings = await _messaging!.requestPermission(
+       await _messaging!.requestPermission(
         alert: true,
         announcement: false,
         badge: true,
@@ -68,6 +72,9 @@ class FirebaseService {
     try {
       // Mensagem recebida quando app está em foreground
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+
+      // Registrar handler para mensagens em background
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
 
       // Mensagem que abriu o app (background/terminated)
       FirebaseMessaging.onMessageOpenedApp.listen(_handleMessageOpenedApp);
@@ -116,7 +123,6 @@ class FirebaseService {
     try {
 
       // Salvar token localmente
-      final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_fcmTokenKey, token);
 
       // Verificar se já foi enviado para API
@@ -124,7 +130,7 @@ class FirebaseService {
 
       if (lastSentToken != token) {
         // Enviar para API DOPilot
-        final success = await _sendTokenToAPI(token);
+        final success = await sendTokenToAPI();
 
         if (success) {
           // Marcar como enviado
@@ -140,7 +146,7 @@ class FirebaseService {
   }
 
   /// Enviar token FCM para API DOPilot
-  Future<bool> _sendTokenToAPI(String fcmToken) async {
+  Future<bool> sendTokenToAPI() async {
     try {
       // Verificar se há usuário autenticado
       if (!_authService.isLoggedIn) {
@@ -148,7 +154,7 @@ class FirebaseService {
       }
 
       final request = DeviceTokenRequestDto(
-        token: fcmToken,
+        token: prefs.getString(_fcmTokenKey),
         deviceId: await _getDeviceId(),
         platform: Platform.isIOS ? 'ios' : 'android',
         deviceModel: await _getDeviceModel(),
@@ -169,13 +175,17 @@ class FirebaseService {
 
   /// Handler para mensagem em foreground
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
-    try {} catch (e) {}
+    try {
+      print('FirebaseService: Mensagem recebida em foreground: ${message.notification?.title} - ${message.notification?.body}');
+      print(message);
+    } catch (e) {}
   }
 
   /// Handler para quando app é aberto por notificação
   Future<void> _handleMessageOpenedApp(RemoteMessage message) async {
     try {
       // TODO: Navegar para tela específica baseada nos dados da notificação
+      print('FirebaseService: App aberto por notificação: ${message.notification?.title} - ${message.notification?.body}');
     } catch (e) {}
   }
 
@@ -249,5 +259,18 @@ class FirebaseService {
     } catch (e) {
       print('FirebaseService: Erro ao aguardar APNS token: $e');
     }
+  }
+}
+
+@pragma('vm:entry-point')
+Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  try {
+    print('FirebaseService: Mensagem em background recebida: ${message.notification?.title}');
+
+    // Aqui você pode processar a notificação em background
+    // Evite operações complexas pois o sistema pode matar o processo
+
+  } catch (e) {
+    print('FirebaseService: Erro no background handler - $e');
   }
 }
