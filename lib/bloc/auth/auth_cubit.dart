@@ -13,15 +13,16 @@ class AuthCubit extends Cubit<AuthState> {
   late final AuthService _authService;
   late final FirebaseMessagingService _firebaseMessagingService;
 
-  AuthCubit() : super(AuthInitial()) {
+  AuthCubit(FirebaseMessagingService firebaseMessagingService) : super(AuthInitial()) {
     _authService = AuthService();
-    _firebaseMessagingService = FirebaseMessagingService();
+    _firebaseMessagingService = firebaseMessagingService;
     _initAuthListener();
   }
 
   /// Inicializar listener de mudanças de autenticação
   void _initAuthListener() {
     _authService.authStateChanges.listen((User? user) async {
+      emit(AuthLoading());
       if (user != null) {
         // Carregar dados do usuário quando logado
         //final userData = await _loadUserData(user);
@@ -54,7 +55,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       if (result.isSuccess) {
         // Sincronizar token FCM após login bem-sucedido
-        await _firebaseMessagingService.sendTokenToAPI();
+        //_firebaseMessagingService.sendTokenToAPI();
 
         // O listener já vai emitir AuthAuthenticated
       } else {
@@ -109,7 +110,7 @@ class AuthCubit extends Cubit<AuthState> {
   }
 
   /// Getter para verificar se está logado
-  bool get isLoggedIn => state is AuthAuthenticated;
+  bool get isLoggedIn => _authService.currentUser != null;
 
   /// Getter para verificar se está carregando
   bool get isLoading => state is AuthLoading;

@@ -43,11 +43,14 @@ void main() async {
   final authService = AuthService();
   DioClient.initialize(authService, firebaseRemoteConfigService);
 
-  runApp(const MyApp());
+  runApp(MyApp(firebaseMessagingService: firebaseMessagingService,));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+
+  final FirebaseMessagingService firebaseMessagingService;
+
+  const MyApp({super.key, required this.firebaseMessagingService});
 
   // This widget is the root of your application.
   @override
@@ -57,7 +60,7 @@ class MyApp extends StatelessWidget {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => AuthCubit()),
+        BlocProvider(create: (context) => AuthCubit(firebaseMessagingService)),
         BlocProvider(create: (context) => DailyTaskCubit()),
         BlocProvider(create: (context) => AllTaskCubit()),
         BlocProvider(create: (context) => NewTaskCubit()),

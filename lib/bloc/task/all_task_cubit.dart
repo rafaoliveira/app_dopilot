@@ -1,6 +1,4 @@
 import 'package:app_dopilot/bloc/task/all_task_state.dart';
-import 'package:app_dopilot/data/enum/task_status.dart';
-import 'package:app_dopilot/data/model/task.dart';
 import 'package:app_dopilot/service/task_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

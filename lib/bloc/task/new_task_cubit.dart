@@ -9,7 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Cubit para gerenciamento de tarefas
 class NewTaskCubit extends Cubit<NewTaskState> {
-  final TaskService _taskService = new TaskService();
+  final TaskService _taskService = TaskService();
 
   NewTaskCubit() : super(NewTaskInitial());
 
